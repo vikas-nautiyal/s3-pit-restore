@@ -125,9 +125,10 @@ class TestS3PitRestore(unittest.TestCase):
         self.assertNotEqual(bucket_versioning.status, None)
         print("enabled!")
 
-    def get_versions(self, s3, path, dest, isDestPrefix):
+    def get_versions(self, s3, path, dest, isDestPrefix = False):
         bucket = s3.Bucket(dest)
         base_path = os.path.basename(os.path.normpath(path))
+        # If isDestPrefix is true, we are getting the version for the dest_prefix folder; otherwise, we are getting the version for the bucket's root folder. 
         if isDestPrefix:
             base_path = os.path.join(args.dest_prefix, base_path)
         resp = bucket.meta.client.list_object_versions(Bucket=dest, Prefix=base_path)
@@ -239,7 +240,7 @@ class TestS3PitRestore(unittest.TestCase):
         self.remove_tree(path)
 
         print("Getting file versions for first upload.")
-        version_before = self.get_versions(s3, path, args.bucket, False)
+        version_before = self.get_versions(s3, path, args.bucket)
 
         print("Upload and overwriting...")
         time.sleep(1)
@@ -257,10 +258,12 @@ class TestS3PitRestore(unittest.TestCase):
         do_restore()
         args.avoid_duplicates = False
 
-        print("Getting file versions after restore.")
-        version_after = self.get_versions(s3, path, args.bucket, False)
+        print("Getting file versions after the restore.")
+        version_after = {}
         if args.dest_prefix is not None:
             version_after = self.get_versions(s3, path, args.bucket, True)
+        else:
+            version_after = self.get_versions(s3, path, args.bucket)
         print('Deleting test files uploaded to s3')
         self.s3_clean_test_files(s3, path)
         print('Comparing versions...')
