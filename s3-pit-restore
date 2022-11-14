@@ -140,8 +140,8 @@ class TestS3PitRestore(unittest.TestCase):
         return fileList
 
     def compare_versions(self, version_before, version_after):
-        # in dest_prefix we restore at different location, so we need different conditions to check
-        if args.dest_prefix is not None:
+        # If the `dest_prefix` is set we restore at a different location (at the dest_prefix path), the version_after value for dest_prefix will be different when restoring here as compared to restoring at the root location so we need different conditions to validate restoring here.
+        if args.dest_prefix:
             if len(version_after) == 1:
                 return True
             return False
@@ -260,7 +260,7 @@ class TestS3PitRestore(unittest.TestCase):
 
         print("Getting file versions after the restore.")
         version_after = {}
-        if args.dest_prefix is not None:
+        if args.dest_prefix:
             version_after = self.get_versions(s3, path, args.bucket, True)
         else:
             version_after = self.get_versions(s3, path, args.bucket)
